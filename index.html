@@ -448,401 +448,327 @@
 
     <div class="toast" id="toast">Voucher code copied!</div>
 
-    <script>
-        // --- 5.1. QUEST DATA STRUCTURE (sample dates; replace with your real ones) ---
-        // Use ISO dates for logic; label is just display text.
-        const weeklyQuests = [
-            {
-                id: 1,
-                name: 'Week 1: Pre-Season Blitz',
-                startDate: '2025-01-01',
-                endDate: '2025-01-07',
-                days: [] // example: already finished week with no detail needed
-            },
-            {
-                id: 2,
-                name: 'Week 2: La Liga Fury',
-                startDate: '2025-01-08',
-                endDate: '2025-01-14',
-                days: [
-                    {
-                        date: '2025-01-08',
-                        label: 'Mon 8',
-                        title: 'Goal Scorer Rush',
-                        code: 'LIGA-MON-08',
-                        reward: '€5 Free Bet',
-                        provider: 'La Liga',
-                        tnc: [
-                            'Bet min €10 on any La Liga match.',
-                            'Win a Single Bet where the Goal Scorer is correctly predicted.',
-                            'Min Odds 1.80.'
-                        ]
-                    },
-                    {
-                        date: '2025-01-09',
-                        label: 'Tue 9',
-                        title: 'Combo King',
-                        code: 'LIGA-TUE-09',
-                        reward: '€10 Free Bet',
-                        provider: 'Any Soccer',
-                        tnc: [
-                            'Win 2 Combo bets with at least 3 legs.',
-                            'Total min odds 3.00.',
-                            'Applies to any Soccer event.'
-                        ]
-                    },
-                    {
-                        date: '2025-01-10',
-                        label: 'Wed 10',
-                        title: 'Pass Tracker',
-                        code: 'LIGA-WED-10',
-                        reward: '€3 Free Bet',
-                        provider: 'Player Specials',
-                        tnc: [
-                            'Place a bet on a player to register an assist.',
-                            'Bet amount min €5.',
-                            'Must be a winning bet.'
-                        ]
-                    },
-                    {
-                        date: '2025-01-11',
-                        label: 'Thu 11',
-                        title: 'Double Chance Challenge',
-                        code: 'LIGA-THU-11',
-                        reward: '€5 Free Bet',
-                        provider: 'Multi Sports',
-                        tnc: [
-                            'Place 3 winning Double Chance bets.',
-                            'Min stake €5 per bet.',
-                            'Applies to any sport.'
-                        ]
-                    },
-                    {
-                        date: '2025-01-12',
-                        label: 'Fri 12',
-                        title: 'Weekend Accumulator',
-                        code: 'LIGA-FRI-12',
-                        reward: '€20 Free Bet',
-                        provider: 'Any Sportsbook',
-                        tnc: [
-                            'Place one accumulator with 5 legs or more.',
-                            'Min stake €20.',
-                            'Min odds per leg 1.30.'
-                        ]
-                    }
-                ]
-            },
-            {
-                id: 3,
-                name: 'Week 3: Champions League Heat',
-                startDate: '2025-01-15',
-                endDate: '2025-01-21',
-                days: []
-            },
-            {
-                id: 4,
-                name: 'Week 4: Global Sports Mix',
-                startDate: '2025-01-22',
-                endDate: '2025-01-28',
-                days: []
-            }
-        ];
+  <script>
+  // Utility: get YYYY-MM-DD from Date
+  function formatDateYMD(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  }
 
-        // --- 5.2. DOM ELEMENTS & STATE ---
-        const weeklyGrid = document.getElementById('weekly-grid');
-        const dailyDetailSection = document.getElementById('daily-mission-detail');
-        const dailyGrid = document.getElementById('daily-grid');
-        const detailTitle = document.getElementById('detail-title');
-        const modal = document.getElementById('missionModal');
-        const closeBtn = document.getElementsByClassName('close-btn')[0];
-        const modalDailyTitle = document.getElementById('modalDailyTitle');
-        const modalVoucherCode = document.getElementById('modalVoucherCode');
-        const modalOptInBtn = document.getElementById('modalOptInBtn');
-        const modalTNCList = document.getElementById('modalTNCList');
-        const modalRewardValue = document.getElementById('modalRewardValue');
-        const gotoProfileBtn = document.getElementById('gotoProfileBtn');
-        const currentDateLabel = document.getElementById('current-date-label');
-        const toast = document.getElementById('toast');
+  const now = new Date();
+  const todayStr = formatDateYMD(now);
 
-        let activeWeek = null;
-        let selectedDailyMission = null;
+  const weeklyGrid = document.getElementById("weekly-grid");
+  const dailyDetailSection = document.getElementById("daily-mission-detail");
+  const dailyGrid = document.getElementById("daily-grid");
+  const detailTitle = document.getElementById("detail-title");
+  const modal = document.getElementById("missionModal");
+  const closeBtn = document.getElementsByClassName("close-btn")[0];
+  const modalDailyTitle = document.getElementById("modalDailyTitle");
+  const modalVoucherCode = document.getElementById("modalVoucherCode");
+  const modalOptInBtn = document.getElementById("modalOptInBtn");
+  const modalTNCList = document.getElementById("modalTNCList");
+  const modalRewardValue = document.getElementById("modalRewardValue");
+  const gotoProfileBtn = document.getElementById("gotoProfileBtn");
+  const currentDateLabel = document.getElementById("current-date-label");
+  const toast = document.getElementById("toast");
 
-        // Utility: get YYYY-MM-DD from Date
-        function formatDateYMD(d) {
-            const y = d.getFullYear();
-            const m = String(d.getMonth() + 1).padStart(2, '0');
-            const day = String(d.getDate()).padStart(2, '0');
-            return `${y}-${m}-${day}`;
+  currentDateLabel.textContent = `(Today: ${todayStr})`;
+
+  let weeklyQuests = [];
+  let activeWeek = null;
+  let selectedDailyMission = null;
+
+  function daysBetween(aStr, bStr) {
+    const a = new Date(aStr + "T00:00:00");
+    const b = new Date(bStr + "T00:00:00");
+    return Math.round((b - a) / (1000 * 60 * 60 * 24));
+  }
+
+  // ----------------- LOAD DATA FROM BACKEND -----------------
+  async function loadQuestsFromBackend() {
+    try {
+      const res = await fetch("/api/quests/weeks");
+      weeklyQuests = await res.json();
+
+      renderWeeklyCards();
+
+      const runningWeek = weeklyQuests.find(
+        (w) => todayStr >= w.startDate && todayStr <= w.endDate
+      );
+      if (runningWeek) {
+        showDailyMissions(runningWeek);
+      }
+    } catch (e) {
+      console.error("Failed to load quests", e);
+    }
+  }
+
+  // ----------------- WEEKLY CARDS -----------------
+  function renderWeeklyCards() {
+    weeklyGrid.innerHTML = "";
+
+    weeklyQuests.forEach((week) => {
+      const start = week.startDate;
+      const end = week.endDate;
+
+      let statusLabel;
+      let badgeClass;
+      let locked = false;
+      let highlightText = "";
+
+      if (todayStr < start) {
+        statusLabel = "Upcoming";
+        badgeClass = "status-upcoming";
+        locked = true;
+
+        const diff = daysBetween(todayStr, start);
+        highlightText =
+          diff === 1 ? "Unlocks in 1 day" : `Unlocks in ${diff} days`;
+      } else if (todayStr > end) {
+        statusLabel = "Completed";
+        badgeClass = "status-completed";
+        locked = false; // can still view
+        highlightText = "All missions closed.";
+      } else {
+        statusLabel = "Running";
+        badgeClass = "status-running";
+        locked = false;
+        highlightText = "Tap to view this week’s daily quests.";
+      }
+
+      const card = document.createElement("div");
+      card.className = `week-card ${locked ? "locked" : ""}`;
+      card.innerHTML = `
+        <span class="week-status-badge ${badgeClass}">${statusLabel}</span>
+        <h3>${week.name}</h3>
+        <p>Duration: ${week.startDate} → ${week.endDate}</p>
+        <p>${highlightText}</p>
+        ${locked ? `<div class="locked-overlay">🔒 LOCKED</div>` : ""}
+        <span class="week-highlight-tag">${
+          statusLabel === "Running" ? "🔥 Current Week" : ""
+        }</span>
+      `;
+
+      if (!locked) {
+        card.onclick = () => showDailyMissions(week);
+      }
+
+      weeklyGrid.appendChild(card);
+    });
+  }
+
+  // ----------------- DAILY MISSIONS -----------------
+  function showDailyMissions(week) {
+    activeWeek = week;
+    detailTitle.textContent = `Daily Missions for ${week.name}`;
+    dailyGrid.innerHTML = "";
+
+    if (!week.days || week.days.length === 0) {
+      dailyGrid.innerHTML = `
+        <p style="color:#8b949e; font-size:0.9em;">
+          Daily mission structure for this week is not configured yet.
+        </p>
+      `;
+      dailyDetailSection.style.display = "block";
+      return;
+    }
+
+    week.days.forEach((mission) => {
+      // Local storage: keep “ACTIVE” badge for that browser
+      if (localStorage.getItem(`quest-optin-${mission.voucherCode}`) === "1") {
+        mission.redeemed = true;
+      }
+
+      const missionDateStr = mission.date;
+      let badgeLabel = "";
+      let badgeClass = "";
+      let clickable = false;
+      let tagline = "";
+      let lockedOverlayText = "";
+
+      if (missionDateStr < todayStr) {
+        if (mission.redeemed) {
+          badgeLabel = "COMPLETED";
+          badgeClass = "status-claimed";
+          tagline = "You have already activated this mission.";
+        } else {
+          badgeLabel = "PASS";
+          badgeClass = "status-pending";
+          tagline = "This day has passed. Mission is no longer available.";
         }
-
-        const now = new Date();
-        const todayStr = formatDateYMD(now);
-        currentDateLabel.textContent = `(Today: ${todayStr})`;
-
-        function daysBetween(aStr, bStr) {
-            const a = new Date(aStr + 'T00:00:00');
-            const b = new Date(bStr + 'T00:00:00');
-            return Math.round((b - a) / (1000 * 60 * 60 * 24));
+        clickable = false;
+      } else if (missionDateStr === todayStr) {
+        if (mission.redeemed) {
+          badgeLabel = "ACTIVE";
+          badgeClass = "status-ready";
+          tagline =
+            "You have activated today’s mission. Complete the requirements to get your reward.";
+        } else {
+          badgeLabel = "TODAY";
+          badgeClass = "status-ready";
+          tagline =
+            "Tap to copy the voucher code & join today’s quest.";
         }
+        clickable = true;
+      } else {
+        badgeLabel = "LOCKED";
+        badgeClass = "status-locked";
+        tagline = "Mission will unlock on this date.";
+        clickable = false;
+        lockedOverlayText = "🔒 LOCKED";
+      }
 
-        // --- 5.3. RENDER WEEKLY CARDS WITH LOCK/PASS LOGIC ---
-        function renderWeeklyCards() {
-            weeklyGrid.innerHTML = '';
+      const card = document.createElement("div");
+      card.className = "daily-card";
+      if (clickable) {
+        card.classList.add("clickable");
+        card.onclick = () => openActivationModal(mission);
+      }
 
-            weeklyQuests.forEach(week => {
-                const start = week.startDate;
-                const end = week.endDate;
-
-                let statusLabel;
-                let badgeClass;
-                let locked = false;
-                let highlightText = '';
-
-                if (todayStr < start) {
-                    statusLabel = 'Upcoming';
-                    badgeClass = 'status-upcoming';
-                    locked = true;
-
-                    const diff = daysBetween(todayStr, start);
-                    highlightText = diff === 1
-                        ? 'Unlocks in 1 day'
-                        : `Unlocks in ${diff} days`;
-                } else if (todayStr > end) {
-                    statusLabel = 'Completed';
-                    badgeClass = 'status-completed';
-                    locked = false; // allow viewing past missions for info
-                    highlightText = 'All missions closed.';
-                } else {
-                    statusLabel = 'Running';
-                    badgeClass = 'status-running';
-                    locked = false;
-                    highlightText = 'Tap to view this week’s daily quests.';
-                }
-
-                const card = document.createElement('div');
-                card.className = `week-card ${locked ? 'locked' : ''}`;
-                card.innerHTML = `
-                    <span class="week-status-badge ${badgeClass}">${statusLabel}</span>
-                    <h3>${week.name}</h3>
-                    <p>Duration: ${week.startDate} → ${week.endDate}</p>
-                    <p>${highlightText}</p>
-                    ${locked ? `<div class="locked-overlay">🔒 LOCKED</div>` : ''}
-                    <span class="week-highlight-tag">${statusLabel === 'Running' ? '🔥 Current Week' : ''}</span>
-                `;
-
-                if (!locked) {
-                    card.onclick = () => showDailyMissions(week);
-                }
-
-                weeklyGrid.appendChild(card);
-            });
+      card.innerHTML = `
+        <span class="mission-status ${badgeClass}">${badgeLabel}</span>
+        <h4>${mission.label}: ${mission.title}</h4>
+        <p class="reward-label">Reward: ${mission.reward}</p>
+        <p class="daily-tagline">Provider/Event: ${
+          mission.provider || "Sportsbook"
+        }</p>
+        <p style="font-size: 0.8em; color: #8b949e;">
+          Criteria: ${mission.tnc[0]}
+        </p>
+        <p class="daily-tagline">${tagline}</p>
+        ${
+          lockedOverlayText
+            ? `<div class="daily-locked-overlay">${lockedOverlayText}</div>`
+            : ""
         }
+      `;
 
-        // --- 5.4. DAILY MISSIONS WITH TODAY / PASS / LOCK STATUS ---
-        function showDailyMissions(week) {
-            activeWeek = week;
-            detailTitle.textContent = `Daily Missions for ${week.name}`;
-            dailyGrid.innerHTML = '';
+      dailyGrid.appendChild(card);
+    });
 
-            if (!week.days || week.days.length === 0) {
-                dailyGrid.innerHTML = `
-                    <p style="color:#8b949e; font-size:0.9em;">
-                        Daily mission structure for this week is not configured yet.
-                    </p>
-                `;
-                dailyDetailSection.style.display = 'block';
-                return;
-            }
+    dailyDetailSection.style.display = "block";
+  }
 
-            week.days.forEach(mission => {
-                // Local storage check (prototype "opt-in" memory)
-                if (localStorage.getItem(`quest-optin-${mission.code}`) === '1') {
-                    mission.redeemed = true;
-                }
+  // ----------------- MODAL & OPT-IN -----------------
+  function openActivationModal(mission) {
+    selectedDailyMission = mission;
+    modalDailyTitle.textContent = `${mission.label}: ${mission.title}`;
+    modalVoucherCode.textContent = mission.voucherCode;
+    modalRewardValue.textContent = `${mission.reward} upon completion.`;
 
-                const missionDateStr = mission.date;
-                let badgeLabel = '';
-                let badgeClass = '';
-                let clickable = false;
-                let tagline = '';
-                let lockedOverlayText = '';
+    modalTNCList.innerHTML = mission.tnc
+      .map((item) => `<li>${item}</li>`)
+      .join("");
 
-                if (missionDateStr < todayStr) {
-                    // Past days = PASS or COMPLETED
-                    if (mission.redeemed) {
-                        badgeLabel = 'COMPLETED';
-                        badgeClass = 'status-claimed';
-                        tagline = 'You have already activated this mission.';
-                    } else {
-                        badgeLabel = 'PASS';
-                        badgeClass = 'status-pending';
-                        tagline = 'This day has passed. Mission is no longer available.';
-                    }
-                    clickable = false;
-                } else if (missionDateStr === todayStr) {
-                    // TODAY = unlock
-                    if (mission.redeemed) {
-                        badgeLabel = 'ACTIVE';
-                        badgeClass = 'status-ready';
-                        tagline = 'You have activated today’s mission. Complete the requirements to get your reward.';
-                    } else {
-                        badgeLabel = 'TODAY';
-                        badgeClass = 'status-ready';
-                        tagline = 'Tap to copy the voucher code & join today’s quest.';
-                    }
-                    clickable = true;
-                } else {
-                    // Future days = LOCKED
-                    badgeLabel = 'LOCKED';
-                    badgeClass = 'status-locked';
-                    tagline = 'Mission will unlock on this date.';
-                    clickable = false;
-                    lockedOverlayText = '🔒 LOCKED';
-                }
+    if (mission.redeemed) {
+      modalOptInBtn.textContent = "MISSION ALREADY ACTIVATED";
+      modalOptInBtn.classList.add("disabled");
+    } else {
+      modalOptInBtn.textContent = "COPY CODE & ACTIVATE QUEST";
+      modalOptInBtn.classList.remove("disabled");
+    }
 
-                const card = document.createElement('div');
-                card.className = 'daily-card';
-                if (clickable) {
-                    card.classList.add('clickable');
-                    card.onclick = () => openActivationModal(mission);
-                }
+    modal.style.display = "block";
+  }
 
-                card.innerHTML = `
-                    <span class="mission-status ${badgeClass}">${badgeLabel}</span>
-                    <h4>${mission.label}: ${mission.title}</h4>
-                    <p class="reward-label">Reward: ${mission.reward}</p>
-                    <p class="daily-tagline">Provider/Event: ${mission.provider || 'Sportsbook'}</p>
-                    <p style="font-size: 0.8em; color: #8b949e;">
-                        Criteria: ${mission.tnc[0]}
-                    </p>
-                    <p class="daily-tagline">${tagline}</p>
-                    ${lockedOverlayText ? `<div class="daily-locked-overlay">${lockedOverlayText}</div>` : ''}
-                `;
+  function showToast(text) {
+    toast.textContent = text;
+    toast.style.display = "block";
+    setTimeout(() => {
+      toast.style.display = "none";
+    }, 1800);
+  }
 
-                dailyGrid.appendChild(card);
-            });
+  async function handleOptIn() {
+    if (!selectedDailyMission) return;
 
-            dailyDetailSection.style.display = 'block';
-        }
+    const code = selectedDailyMission.voucherCode;
 
-        // --- 5.5. MODAL + OPT-IN / COPY / REDIRECT ---
-        function openActivationModal(mission) {
-            selectedDailyMission = mission;
-            modalDailyTitle.textContent = `${mission.label}: ${mission.title}`;
-            modalVoucherCode.textContent = mission.code;
-            modalRewardValue.textContent = `${mission.reward} upon completion.`;
+    // 1) Copy to clipboard
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(code);
+        showToast("Voucher code copied to clipboard!");
+      } else {
+        showToast("Please manually copy the code above.");
+      }
+    } catch (e) {
+      showToast("Please manually copy the code above.");
+    }
 
-            // Render T&C list
-            modalTNCList.innerHTML = mission.tnc.map(item => `<li>${item}</li>`).join('');
+    // 2) Store ACTIVE state locally (for UI only)
+    localStorage.setItem(`quest-optin-${code}`, "1");
+    selectedDailyMission.redeemed = true;
 
-            // Button states
-            if (mission.redeemed) {
-                modalOptInBtn.textContent = 'MISSION ALREADY ACTIVATED';
-                modalOptInBtn.classList.add('disabled');
-            } else {
-                modalOptInBtn.textContent = 'COPY CODE & ACTIVATE QUEST';
-                modalOptInBtn.classList.remove('disabled');
-            }
+    // 3) Notify backend (so your team can see opt-ins)
+    try {
+      // TODO: replace with real user values from your auth system
+      const fakeUser = { userId: "123", username: "testuser" };
 
-            modal.style.display = 'block';
-        }
+      await fetch("/api/quests/optin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          voucherCode: code,
+          userId: fakeUser.userId,
+          username: fakeUser.username,
+        }),
+      });
+    } catch (err) {
+      console.warn("Failed to notify backend about opt-in", err);
+    }
 
-        function showToast(text) {
-            toast.textContent = text;
-            toast.style.display = 'block';
-            setTimeout(() => {
-                toast.style.display = 'none';
-            }, 1800);
-        }
+    // 4) Update button + cards
+    modalOptInBtn.textContent = "MISSION ACTIVATED (CODE COPIED)";
+    modalOptInBtn.classList.add("disabled");
 
-        async function handleOptIn() {
-            if (!selectedDailyMission) return;
+    if (activeWeek) {
+      showDailyMissions(activeWeek);
+    }
+  }
 
-            const code = selectedDailyMission.code;
+  function goToMyProfile() {
+    const origin = window.location.origin;
+    const currentPath =
+      window.location.pathname +
+      window.location.search +
+      window.location.hash;
 
-            // 1. Copy to clipboard (if possible)
-            try {
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                    await navigator.clipboard.writeText(code);
-                    showToast('Voucher code copied to clipboard!');
-                } else {
-                    // Fallback: select text in the modal
-                    showToast('Please manually copy the code above.');
-                }
-            } catch (e) {
-                showToast('Please manually copy the code above.');
-            }
+    const returnParamName = "return";
+    const profileUrl = `${origin}/myprofile?${returnParamName}=${encodeURIComponent(
+      currentPath
+    )}`;
 
-            // 2. Mark as "opted-in" in local storage (front-end prototype)
-            localStorage.setItem(`quest-optin-${code}`, '1');
-            selectedDailyMission.redeemed = true;
+    window.location.href = profileUrl;
+  }
 
-            // 3. (OPTIONAL) Send to backend so your team can track opt-ins
-            // Uncomment & adjust when backend is ready:
-            /*
-            try {
-                await fetch('/api/quests/optin', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ voucherCode: code })
-                });
-            } catch (err) {
-                console.warn('Failed to notify backend about opt-in', err);
-            }
-            */
+  // ----------------- MODAL CLOSE HANDLERS -----------------
+  closeBtn.onclick = function () {
+    modal.style.display = "none";
+  };
 
-            // 4. Update modal button UI
-            modalOptInBtn.textContent = 'MISSION ACTIVATED (CODE COPIED)';
-            modalOptInBtn.classList.add('disabled');
+  window.onclick = function (event) {
+    if (event.target === modal) {
+      modal.style.display = "none";
+    }
+  };
 
-            // 5. Re-render daily cards to show ACTIVE status
-            if (activeWeek) {
-                showDailyMissions(activeWeek);
-            }
-        }
+  modalOptInBtn.addEventListener("click", () => {
+    if (!modalOptInBtn.classList.contains("disabled")) {
+      handleOptIn();
+    }
+  });
 
-        function goToMyProfile() {
-            // Ensure we stay on the same domain: rico.bet / ricobet.net / ricobet.com.mx etc.
-            const origin = window.location.origin;
-            const currentPath = window.location.pathname + window.location.search + window.location.hash;
+  gotoProfileBtn.addEventListener("click", goToMyProfile);
 
-            // Adjust the parameter name if your backend expects something else (e.g. returnUrl)
-            const returnParamName = 'return';
-            const profileUrl = `${origin}/myprofile?${returnParamName}=${encodeURIComponent(currentPath)}`;
-
-            window.location.href = profileUrl;
-        }
-
-        // --- 5.6. MODAL CLOSING LOGIC ---
-        closeBtn.onclick = function () {
-            modal.style.display = 'none';
-        };
-
-        window.onclick = function (event) {
-            if (event.target === modal) {
-                modal.style.display = 'none';
-            }
-        };
-
-        modalOptInBtn.addEventListener('click', () => {
-            if (!modalOptInBtn.classList.contains('disabled')) {
-                handleOptIn();
-            }
-        });
-
-        gotoProfileBtn.addEventListener('click', goToMyProfile);
-
-        // --- 5.7. INITIAL RUN ---
-        document.addEventListener('DOMContentLoaded', () => {
-            renderWeeklyCards();
-
-            // Auto-open the running week if any
-            const runningWeek = weeklyQuests.find(w => todayStr >= w.startDate && todayStr <= w.endDate);
-            if (runningWeek) {
-                showDailyMissions(runningWeek);
-            }
-        });
-    </script>
+  // ----------------- INITIAL LOAD -----------------
+  document.addEventListener("DOMContentLoaded", () => {
+    loadQuestsFromBackend();
+  });
+</script>
 
 </body>
 </html>
