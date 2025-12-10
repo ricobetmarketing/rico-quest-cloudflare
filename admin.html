@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Rico Quest Admin Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #0d1117;
+      --bg-elevated: #161b22;
+      --bg-soft: #1f2933;
+      --border: #30363d;
+      --accent: #f97316;
+      --accent-soft: rgba(249, 115, 22, 0.15);
+      --accent-green: #22c55e;
+      --text: #e5e7eb;
+      --text-soft: #9ca3af;
+      --danger: #ef4444;
+      --shadow-soft: 0 18px 40px rgba(15, 23, 42, 0.6);
+      --radius-lg: 14px;
+      --radius-md: 10px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    h1, h2, h3, h4 {
+      margin: 0;
+    }
+
+    .page {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* LEFT SIDEBAR – Weeks */
+    .sidebar {
+      width: 300px;
+      max-width: 100%;
+      background: radial-gradient(circle at top, #111827 0%, #020617 60%);
+      border-right: 1px solid var(--border);
+      padding: 18px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .logo-block {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(120deg, var(--accent-soft), transparent);
+      border: 1px solid rgba(249, 115, 22, 0.4);
+    }
+
+    .logo-block-title {
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    .logo-block-sub {
+      font-size: 12px;
+      color: var(--text-soft);
+    }
+
+    .badge-env {
+      padding: 4px 8px;
+      font-size: 11px;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.12);
+      border: 1px solid rgba(34, 197, 94, 0.6);
+      color: #a7f3d0;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .sidebar-section-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-soft);
+      margin-top: 4px;
+      margin-bottom: 4px;
+    }
+
+    .week-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: calc(100vh - 160px);
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .week-item {
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background-color: #020617;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      cursor: pointer;
+      transition: border-color 0.15s, background-color 0.15s, transform 0.1s;
+    }
+
+    .week-item:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .week-item.active {
+      border-color: var(--accent);
+      background-color: var(--accent-soft);
+      box-shadow: 0 0 0 1px rgba(249, 115, 22, 0.3);
+    }
+
+    .week-item-title {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .week-item-dates {
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+
+    .week-item-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 2px;
+    }
+
+    .tag-pill {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--text-soft);
+    }
+
+    .tag-pill-running {
+      border-color: rgba(34, 197, 94, 0.7);
+      color: #bbf7d0;
+      background: rgba(22, 163, 74, 0.2);
+    }
+
+    .tag-pill-upcoming {
+      border-color: rgba(37, 99, 235, 0.7);
+      color: #bfdbfe;
+      background: rgba(37, 99, 235, 0.15);
+    }
+
+    .tag-pill-completed {
+      border-color: rgba(148, 163, 184, 0.7);
+      color: #e5e7eb;
+      background: rgba(148, 163, 184, 0.2);
+    }
+
+    .sidebar-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .btn {
+      border: 1px solid var(--border);
+      background-color: #020617;
+      color: var(--text);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background-color 0.12s, border-color 0.12s, transform 0.08s;
+    }
+
+    .btn:hover {
+      background-color: var(--bg-soft);
+      border-color: var(--accent);
+      transform: translateY(-0.5px);
+    }
+
+    .btn-primary {
+      background: linear-gradient(120deg, #f97316, #fb923c);
+      border-color: #fb923c;
+      color: #111827;
+      font-weight: 600;
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(120deg, #fb923c, #fdba74);
+    }
+
+    .btn-danger {
+      border-color: rgba(239, 68, 68, 0.7);
+      color: #fecaca;
+      background: rgba(239, 68, 68, 0.12);
+    }
+
+    .btn-sm {
+      padding: 4px 8px;
+      font-size: 11px;
+    }
+
+    /* MAIN AREA */
+    .main {
+      flex: 1;
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      background:
+        radial-gradient(circle at top left, rgba(249, 115, 22, 0.08), transparent 55%),
+        radial-gradient(circle at bottom right, rgba(56, 189, 248, 0.06), transparent 55%),
+        #020617;
+    }
+
+    .main-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .main-header-titles {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .main-title {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .main-subtitle {
+      font-size: 12px;
+      color: var(--text-soft);
+    }
+
+    .pill-current-date {
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px dashed var(--border);
+      color: var(--text-soft);
+      background: rgba(15, 23, 42, 0.7);
+    }
+
+    .panels {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(0, 1.65fr);
+      gap: 14px;
+      align-items: start;
+    }
+
+    @media (max-width: 1024px) {
+      .page {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .panels {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .card {
+      background-color: var(--bg-elevated);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-soft);
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 0;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .card-subtitle {
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 6px 0;
+    }
+
+    /* FORMS */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px 12px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 12px;
+    }
+
+    .form-group.full {
+      grid-column: 1 / -1;
+    }
+
+    .form-label {
+      color: var(--text-soft);
+      font-size: 11px;
+    }
+
+    .form-input,
+    .form-textarea,
+    .form-select {
+      background-color: #020617;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      padding: 7px 8px;
+      color: var(--text);
+      font-size: 12px;
+      outline: none;
+      width: 100%;
+    }
+
+    .form-input:focus,
+    .form-textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(249, 115, 22, 0.4);
+    }
+
+    .form-textarea {
+      min-height: 70px;
+      resize: vertical;
+    }
+
+    .form-inline {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--text-soft);
+      margin-top: 4px;
+    }
+
+    .form-inline input[type="checkbox"] {
+      accent-color: var(--accent);
+    }
+
+    .form-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    /* MISSIONS TABLE */
+    .mission-table-wrapper {
+      max-height: 260px;
+      overflow-y: auto;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background-color: #020617;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+
+    th, td {
+      padding: 6px 8px;
+      border-bottom: 1px solid rgba(55, 65, 81, 0.6);
+    }
+
+    th {
+      text-align: left;
+      position: sticky;
+      top: 0;
+      background-color: #020617;
+      z-index: 1;
+      font-weight: 600;
+      color: var(--text-soft);
+    }
+
+    tr.mission-row {
+      cursor: pointer;
+      transition: background-color 0.1s;
+    }
+
+    tr.mission-row:hover {
+      background-color: rgba(15, 23, 42, 0.9);
+    }
+
+    tr.mission-row.active {
+      background-color: rgba(249, 115, 22, 0.12);
+    }
+
+    .pill-status {
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .pill-status-enabled {
+      background: rgba(34, 197, 94, 0.15);
+      border-color: rgba(34, 197, 94, 0.7);
+      color: #bbf7d0;
+    }
+
+    .pill-status-disabled {
+      background: rgba(148, 163, 184, 0.15);
+      border-color: rgba(148, 163, 184, 0.7);
+      color: #e5e7eb;
+    }
+
+    /* OPT-IN TABLE */
+    .optins-table-wrapper {
+      max-height: 220px;
+      overflow-y: auto;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background-color: #020617;
+    }
+
+    .empty-hint {
+      font-size: 12px;
+      color: var(--text-soft);
+    }
+
+    /* TOAST */
+    .toast {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #020617;
+      border-radius: 999px;
+      padding: 8px 16px;
+      border: 1px solid var(--accent);
+      font-size: 12px;
+      color: var(--text);
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.85);
+      display: none;
+      z-index: 9999;
+    }
+
+    .toast.show {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="logo-block">
+        <div>
+          <div class="logo-block-title">Rico Quest Admin</div>
+          <div class="logo-block-sub">Configure weeks, missions & opt-ins</div>
+        </div>
+        <span class="badge-env">Cloudflare</span>
+      </div>
+
+      <div>
+        <div class="sidebar-section-title">Weeks</div>
+        <div class="sidebar-actions">
+          <button class="btn btn-primary btn-sm" id="btnNewWeek">
+            + New Week
+          </button>
+          <button class="btn btn-sm" id="btnRefreshWeeks">
+            ⟳ Refresh
+          </button>
+        </div>
+      </div>
+
+      <div class="week-list" id="weekList">
+        <!-- Weeks will be inserted here -->
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+      <div class="main-header">
+        <div class="main-header-titles">
+          <div class="main-title">Quest Configuration</div>
+          <div class="main-subtitle">
+            Select a week on the left to configure its daily missions and view opt-ins.
+          </div>
+        </div>
+        <div class="pill-current-date" id="admin-date-pill"></div>
+      </div>
+
+      <div class="panels">
+        <!-- LEFT PANEL: WEEK + MISSION FORM -->
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Selected Week</div>
+              <div class="card-subtitle">
+                Edit week details & save. Creating a new week will not affect existing players.
+              </div>
+            </div>
+            <span id="selectedWeekLabel" class="pill-status">No week selected</span>
+          </div>
+
+          <hr class="divider" />
+
+          <form id="weekForm">
+            <input type="hidden" id="weekId" />
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label" for="weekTitle">Title</label>
+                <input class="form-input" id="weekTitle" placeholder="Week 2: La Liga Fury" />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="weekSlug">Slug</label>
+                <input class="form-input" id="weekSlug" placeholder="week-2-la-liga-fury" />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="weekStart">Start Date (YYYY-MM-DD)</label>
+                <input class="form-input" id="weekStart" placeholder="2025-01-08" />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="weekEnd">End Date (YYYY-MM-DD)</label>
+                <input class="form-input" id="weekEnd" placeholder="2025-01-14" />
+              </div>
+
+              <div class="form-group full">
+                <label class="form-label" for="weekGrandPrize">Grand Prize Text</label>
+                <input class="form-input" id="weekGrandPrize" placeholder="$10,000 Free Bet" />
+              </div>
+
+              <div class="form-group full">
+                <div class="form-inline">
+                  <input type="checkbox" id="weekIsActive" />
+                  <label for="weekIsActive">Week is active (visible for players)</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="button" class="btn btn-sm" id="btnResetWeek">
+                Reset
+              </button>
+              <button type="submit" class="btn btn-primary btn-sm">
+                Save Week
+              </button>
+            </div>
+          </form>
+
+          <hr class="divider" />
+
+          <div class="card-header">
+            <div>
+              <div class="card-title">Daily Mission</div>
+              <div class="card-subtitle">
+                Add or edit a single mission for the selected week.
+              </div>
+            </div>
+            <button class="btn btn-sm" id="btnNewMission">+ New Mission</button>
+          </div>
+
+          <form id="missionForm">
+            <input type="hidden" id="missionId" />
+            <input type="hidden" id="missionWeekId" />
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label" for="missionDate">Date (YYYY-MM-DD)</label>
+                <input class="form-input" id="missionDate" placeholder="2025-01-08" />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="missionLabel">Label (display tag)</label>
+                <input class="form-input" id="missionLabel" placeholder="Mon 8" />
+              </div>
+
+              <div class="form-group full">
+                <label class="form-label" for="missionTitle">Title</label>
+                <input class="form-input" id="missionTitle" placeholder="Goal Scorer Rush" />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="missionProvider">Provider / Event</label>
+                <input class="form-input" id="missionProvider" placeholder="La Liga, Any Soccer, etc." />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="missionVoucher">Voucher Code</label>
+                <input class="form-input" id="missionVoucher" placeholder="LIGA-MON-08" />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="missionReward">Reward Text</label>
+                <input class="form-input" id="missionReward" placeholder="€5 Free Bet" />
+              </div>
+
+              <div class="form-group full">
+                <label class="form-label" for="missionTNC">
+                  T&C lines (one per line)
+                </label>
+                <textarea class="form-textarea" id="missionTNC"
+                  placeholder="Bet min €10 on any La Liga match.&#10;Win a single bet where the goal scorer is correctly predicted.&#10;Min odds 1.80."></textarea>
+              </div>
+
+              <div class="form-group full">
+                <div class="form-inline">
+                  <input type="checkbox" id="missionEnabled" checked />
+                  <label for="missionEnabled">Mission enabled (eligible for players)</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="button" class="btn btn-sm" id="btnResetMission">
+                Reset
+              </button>
+              <button type="submit" class="btn btn-primary btn-sm">
+                Save Mission
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <!-- RIGHT PANEL: MISSION LIST + OPTINS -->
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Missions in Week</div>
+              <div class="card-subtitle">
+                Click a row to edit. Sorted by mission date.
+              </div>
+            </div>
+            <span id="missionCountLabel" class="pill-status">
+              0 missions
+            </span>
+          </div>
+
+          <div class="mission-table-wrapper" id="missionTableWrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Label</th>
+                  <th>Title</th>
+                  <th>Voucher</th>
+                  <th>Reward</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="missionTableBody">
+                <!-- Missions go here -->
+              </tbody>
+            </table>
+          </div>
+
+          <hr class="divider" />
+
+          <div class="card-header">
+            <div>
+              <div class="card-title">Recent Opt-ins</div>
+              <div class="card-subtitle">
+                Shows players who activated missions in this week.
+              </div>
+            </div>
+            <button class="btn btn-sm" id="btnRefreshOptins">Refresh</button>
+          </div>
+
+          <div class="optins-table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Time (UTC)</th>
+                  <th>User</th>
+                  <th>Voucher</th>
+                  <th>Mission Date</th>
+                  <th>Mission Title</th>
+                  <th>IP</th>
+                </tr>
+              </thead>
+              <tbody id="optinsTableBody">
+                <!-- Optins go here -->
+              </tbody>
+            </table>
+          </div>
+
+          <div class="empty-hint" id="optinsHint">
+            No opt-ins loaded yet. Select a week and click "Refresh".
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const weekListEl = document.getElementById("weekList");
+    const btnNewWeek = document.getElementById("btnNewWeek");
+    const btnRefreshWeeks = document.getElementById("btnRefreshWeeks");
+    const selectedWeekLabel = document.getElementById("selectedWeekLabel");
+    const adminDatePill = document.getElementById("admin-date-pill");
+
+    const weekForm = document.getElementById("weekForm");
+    const weekIdInput = document.getElementById("weekId");
+    const weekTitleInput = document.getElementById("weekTitle");
+    const weekSlugInput = document.getElementById("weekSlug");
+    const weekStartInput = document.getElementById("weekStart");
+    const weekEndInput = document.getElementById("weekEnd");
+    const weekGrandPrizeInput = document.getElementById("weekGrandPrize");
+    const weekIsActiveInput = document.getElementById("weekIsActive");
+    const btnResetWeek = document.getElementById("btnResetWeek");
+
+    const missionForm = document.getElementById("missionForm");
+    const missionIdInput = document.getElementById("missionId");
+    const missionWeekIdInput = document.getElementById("missionWeekId");
+    const missionDateInput = document.getElementById("missionDate");
+    const missionLabelInput = document.getElementById("missionLabel");
+    const missionTitleInput = document.getElementById("missionTitle");
+    const missionProviderInput = document.getElementById("missionProvider");
+    const missionVoucherInput = document.getElementById("missionVoucher");
+    const missionRewardInput = document.getElementById("missionReward");
+    const missionTNCInput = document.getElementById("missionTNC");
+    const missionEnabledInput = document.getElementById("missionEnabled");
+    const btnResetMission = document.getElementById("btnResetMission");
+    const btnNewMission = document.getElementById("btnNewMission");
+
+    const missionTableBody = document.getElementById("missionTableBody");
+    const missionCountLabel = document.getElementById("missionCountLabel");
+
+    const optinsTableBody = document.getElementById("optinsTableBody");
+    const optinsHint = document.getElementById("optinsHint");
+    const btnRefreshOptins = document.getElementById("btnRefreshOptins");
+
+    const toastEl = document.getElementById("toast");
+
+    let weeks = [];
+    let selectedWeekId = null;
+    let missions = [];
+
+    function formatDateYMD(d) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${y}-${m}-${day}`;
+    }
+
+    adminDatePill.textContent = `Today: ${formatDateYMD(new Date())}`;
+
+    function showToast(message) {
+      toastEl.textContent = message;
+      toastEl.classList.add("show");
+      setTimeout(() => {
+        toastEl.classList.remove("show");
+      }, 2000);
+    }
+
+    // ---------- LOAD WEEKS ----------
+    async function loadWeeks() {
+      try {
+        const res = await fetch("/api/admin/weeks");
+        weeks = await res.json();
+        renderWeeks();
+      } catch (err) {
+        console.error("Failed to load weeks", err);
+        showToast("Error loading weeks");
+      }
+    }
+
+    function getWeekStatus(week) {
+      const today = formatDateYMD(new Date());
+      const start = week.start_date;
+      const end = week.end_date;
+
+      if (today < start) return "upcoming";
+      if (today > end) return "completed";
+      return "running";
+    }
+
+    function renderWeeks() {
+      weekListEl.innerHTML = "";
+      if (!weeks || weeks.length === 0) {
+        weekListEl.innerHTML =
+          "<div style='font-size:12px;color:#9ca3af;'>No weeks configured yet. Click “New Week”.</div>";
+        selectedWeekLabel.textContent = "No week selected";
+        return;
+      }
+
+      weeks.forEach((week) => {
+        const status = getWeekStatus(week);
+        const item = document.createElement("div");
+        item.className =
+          "week-item" + (week.id === selectedWeekId ? " active" : "");
+        item.dataset.weekId = week.id;
+
+        const tags = [];
+        if (status === "running") tags.push("Running");
+        if (status === "upcoming") tags.push("Upcoming");
+        if (status === "completed") tags.push("Completed");
+        if (!week.is_active) tags.push("Inactive");
+
+        item.innerHTML = `
+          <div class="week-item-title">${week.title}</div>
+          <div class="week-item-dates">${week.start_date} → ${week.end_date}</div>
+          <div class="week-item-tags">
+            ${tags
+              .map((t) => {
+                let cls = "tag-pill";
+                if (t === "Running") cls += " tag-pill-running";
+                if (t === "Upcoming") cls += " tag-pill-upcoming";
+                if (t === "Completed") cls += " tag-pill-completed";
+                return `<span class="${cls}">${t}</span>`;
+              })
+              .join("")}
+          </div>
+        `;
+
+        item.addEventListener("click", () => {
+          selectWeek(week.id);
+        });
+
+        weekListEl.appendChild(item);
+      });
+
+      // If nothing selected, pick first
+      if (!selectedWeekId && weeks.length > 0) {
+        selectWeek(weeks[0].id);
+      }
+    }
+
+    function selectWeek(id) {
+      selectedWeekId = id;
+      const week = weeks.find((w) => w.id === id);
+      if (!week) return;
+
+      // Update active visual
+      document
+        .querySelectorAll(".week-item")
+        .forEach((el) => el.classList.remove("active"));
+      const activeEl = document.querySelector(`.week-item[data-week-id="${id}"]`);
+      if (activeEl) activeEl.classList.add("active");
+
+      // Fill form
+      weekIdInput.value = week.id;
+      weekTitleInput.value = week.title || "";
+      weekSlugInput.value = week.slug || "";
+      weekStartInput.value = week.start_date || "";
+      weekEndInput.value = week.end_date || "";
+      weekGrandPrizeInput.value = week.grand_prize_text || "";
+      weekIsActiveInput.checked = week.is_active ? true : false;
+
+      selectedWeekLabel.textContent = `Week ID #${week.id}`;
+
+      // Load missions + optins
+      missionWeekIdInput.value = week.id;
+      loadMissionsForWeek(week.id);
+      loadOptinsForWeek(week.id);
+    }
+
+    // ---------- WEEK FORM ----------
+    function resetWeekForm() {
+      weekIdInput.value = "";
+      weekTitleInput.value = "";
+      weekSlugInput.value = "";
+      weekStartInput.value = "";
+      weekEndInput.value = "";
+      weekGrandPrizeInput.value = "";
+      weekIsActiveInput.checked = true;
+      selectedWeekLabel.textContent = "No week selected";
+    }
+
+    weekForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const payload = {
+        id: weekIdInput.value ? Number(weekIdInput.value) : null,
+        title: weekTitleInput.value.trim(),
+        slug: weekSlugInput.value.trim(),
+        startDate: weekStartInput.value.trim(),
+        endDate: weekEndInput.value.trim(),
+        grandPrizeText: weekGrandPrizeInput.value.trim(),
+        isActive: weekIsActiveInput.checked,
+      };
+
+      if (!payload.title || !payload.slug || !payload.startDate || !payload.endDate) {
+        showToast("Please fill required fields for week");
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/admin/week-save", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if (!res.ok || data.error) throw new Error(data.error || "Failed");
+
+        showToast("Week saved");
+        await loadWeeks();
+
+        if (payload.id) {
+          selectWeek(payload.id);
+        } else {
+          // select last inserted week
+          const last = weeks[weeks.length - 1];
+          if (last) selectWeek(last.id);
+        }
+      } catch (err) {
+        console.error("Save week failed", err);
+        showToast("Error saving week");
+      }
+    });
+
+    btnResetWeek.addEventListener("click", resetWeekForm);
+
+    btnNewWeek.addEventListener("click", () => {
+      resetWeekForm();
+      missionWeekIdInput.value = "";
+      missions = [];
+      renderMissions();
+      optinsTableBody.innerHTML = "";
+      optinsHint.textContent = "No week selected.";
+    });
+
+    btnRefreshWeeks.addEventListener("click", () => {
+      loadWeeks();
+    });
+
+    // ---------- MISSIONS ----------
+    async function loadMissionsForWeek(weekId) {
+      if (!weekId) {
+        missions = [];
+        renderMissions();
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/admin/days?weekId=${weekId}`);
+        missions = await res.json();
+        renderMissions();
+      } catch (err) {
+        console.error("Failed to load missions", err);
+        showToast("Error loading missions");
+      }
+    }
+
+    function renderMissions() {
+      missionTableBody.innerHTML = "";
+
+      if (!missions || missions.length === 0) {
+        missionTableBody.innerHTML = `
+          <tr><td colspan="6" style="font-size:12px;color:#9ca3af;">No missions configured for this week yet.</td></tr>
+        `;
+        missionCountLabel.textContent = "0 missions";
+        return;
+      }
+
+      missionCountLabel.textContent = `${missions.length} mission${
+        missions.length === 1 ? "" : "s"
+      }`;
+
+      missions.forEach((m) => {
+        const tr = document.createElement("tr");
+        tr.className = "mission-row";
+        tr.dataset.missionId = m.id;
+
+        tr.innerHTML = `
+          <td>${m.mission_date}</td>
+          <td>${m.label}</td>
+          <td>${m.title}</td>
+          <td>${m.voucher_code}</td>
+          <td>${m.reward_text}</td>
+          <td>
+            <span class="pill-status ${
+              m.is_enabled ? "pill-status-enabled" : "pill-status-disabled"
+            }">
+              ${m.is_enabled ? "ENABLED" : "DISABLED"}
+            </span>
+          </td>
+        `;
+
+        tr.addEventListener("click", () => {
+          selectMission(m.id);
+        });
+
+        missionTableBody.appendChild(tr);
+      });
+    }
+
+    function selectMission(id) {
+      const m = missions.find((x) => x.id === id);
+      if (!m) return;
+
+      document
+        .querySelectorAll("tr.mission-row")
+        .forEach((el) => el.classList.remove("active"));
+      const activeRow = document.querySelector(`tr.mission-row[data-mission-id="${id}"]`);
+      if (activeRow) activeRow.classList.add("active");
+
+      missionIdInput.value = m.id;
+      missionWeekIdInput.value = m.week_id;
+      missionDateInput.value = m.mission_date || "";
+      missionLabelInput.value = m.label || "";
+      missionTitleInput.value = m.title || "";
+      missionProviderInput.value = m.provider || "";
+      missionVoucherInput.value = m.voucher_code || "";
+      missionRewardInput.value = m.reward_text || "";
+      missionEnabledInput.checked = m.is_enabled ? true : false;
+
+      try {
+        const arr = JSON.parse(m.tnc_json || "[]");
+        missionTNCInput.value = Array.isArray(arr) ? arr.join("\n") : "";
+      } catch {
+        missionTNCInput.value = "";
+      }
+    }
+
+    function resetMissionForm() {
+      missionIdInput.value = "";
+      missionDateInput.value = "";
+      missionLabelInput.value = "";
+      missionTitleInput.value = "";
+      missionProviderInput.value = "";
+      missionVoucherInput.value = "";
+      missionRewardInput.value = "";
+      missionTNCInput.value = "";
+      missionEnabledInput.checked = true;
+      document
+        .querySelectorAll("tr.mission-row")
+        .forEach((el) => el.classList.remove("active"));
+    }
+
+    missionForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      if (!selectedWeekId) {
+        showToast("Select a week first");
+        return;
+      }
+
+      const tncArray = missionTNCInput.value
+        .split("\n")
+        .map((l) => l.trim())
+        .filter(Boolean);
+
+      const payload = {
+        id: missionIdInput.value ? Number(missionIdInput.value) : null,
+        weekId: selectedWeekId,
+        missionDate: missionDateInput.value.trim(),
+        label: missionLabelInput.value.trim(),
+        title: missionTitleInput.value.trim(),
+        provider: missionProviderInput.value.trim(),
+        voucherCode: missionVoucherInput.value.trim(),
+        rewardText: missionRewardInput.value.trim(),
+        tncArray,
+        isEnabled: missionEnabledInput.checked,
+      };
+
+      if (
+        !payload.missionDate ||
+        !payload.label ||
+        !payload.title ||
+        !payload.voucherCode ||
+        !payload.rewardText
+      ) {
+        showToast("Please fill required fields for mission");
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/admin/day-save", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if (!res.ok || data.error) throw new Error(data.error || "Failed");
+        showToast("Mission saved");
+        await loadMissionsForWeek(selectedWeekId);
+      } catch (err) {
+        console.error("Save mission failed", err);
+        showToast("Error saving mission");
+      }
+    });
+
+    btnResetMission.addEventListener("click", resetMissionForm);
+    btnNewMission.addEventListener("click", resetMissionForm);
+
+    // ---------- OPT-INS ----------
+    async function loadOptinsForWeek(weekId) {
+      if (!weekId) {
+        optinsTableBody.innerHTML = "";
+        optinsHint.textContent = "No week selected.";
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/admin/optins?weekId=${weekId}`);
+        const data = await res.json();
+
+        optinsTableBody.innerHTML = "";
+
+        if (!data || data.length === 0) {
+          optinsHint.textContent = "No opt-ins for this week yet.";
+          return;
+        }
+
+        optinsHint.textContent = `${data.length} opt-in${
+          data.length === 1 ? "" : "s"
+        } loaded.`;
+
+        data.forEach((row) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${row.opted_in_at || ""}</td>
+            <td>${row.username || ""}</td>
+            <td>${row.voucher_code || ""}</td>
+            <td>${row.mission_date || ""}</td>
+            <td>${row.mission_title || ""}</td>
+            <td>${row.ip_address || ""}</td>
+          `;
+          optinsTableBody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error("Failed to load optins", err);
+        optinsHint.textContent = "Error loading opt-ins.";
+      }
+    }
+
+    btnRefreshOptins.addEventListener("click", () => {
+      if (!selectedWeekId) {
+        showToast("Select a week first");
+        return;
+      }
+      loadOptinsForWeek(selectedWeekId);
+    });
+
+    // ---------- INIT ----------
+    document.addEventListener("DOMContentLoaded", () => {
+      loadWeeks();
+    });
+  </script>
+</body>
+</html>
