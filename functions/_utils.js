@@ -5,7 +5,7 @@ export function corsHeaders() {
     "Access-Control-Allow-Headers": "Content-Type, X-Admin-Key",
   };
 }
-
+ 
 export function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
